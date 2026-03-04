@@ -72,11 +72,17 @@ export function ChartWidget({
                     pctChange
                 });
 
+                // Subtle layout background change if extended hours are active
+                const isDark = document.documentElement.classList.contains('dark');
+                const bgColor = extendedHours
+                    ? (isDark ? '#1a1f24' : '#f0fdf4') // Very subtle emerald tint
+                    : 'transparent';
+
                 // Initialize chart if container exists
                 if (chartContainerRef.current && !chartRef.current) {
                     const chart = createChart(chartContainerRef.current, {
                         layout: {
-                            background: { color: 'transparent' },
+                            background: { color: bgColor },
                             textColor: '#a1a1aa',
                         },
                         grid: {
@@ -119,6 +125,7 @@ export function ChartWidget({
                             lineColor: '#10b981', // emerald-500
                             topColor: 'rgba(16, 185, 129, 0.4)',
                             bottomColor: 'rgba(16, 185, 129, 0)',
+                            lineWidth: 2,
                         });
                     } else {
                         mainSeries = chart.addCandlestickSeries({
@@ -151,16 +158,55 @@ export function ChartWidget({
                     });
                 }
 
-                // Apply timescale options
+                // Apply timescale options and layout
                 if (chartRef.current) {
                     chartRef.current.applyOptions({
                         timeScale: {
                             timeVisible: isIntraday,
+                        },
+                        layout: {
+                            background: { color: bgColor }
                         }
                     });
                 }
 
-                // Update Data
+                // Create markers for sessions if Extended Hours are active
+                let markers: any[] = [];
+                if (extendedHours && meta.tradingPeriods && isIntraday) {
+                    const addMarker = (time: any, text: string, color: string, position: 'aboveBar' | 'belowBar') => {
+                        // Ensure the time exists in our dataset to anchor the marker
+                        const matchingPoint = data.find((d: any) => d.time === time);
+                        if (matchingPoint) {
+                            markers.push({
+                                time,
+                                position,
+                                color,
+                                shape: position === 'aboveBar' ? 'arrowDown' : 'arrowUp',
+                                text,
+                            });
+                        } else {
+                            // Find closest subsequent point
+                            const closest = data.find((d: any) => d.time > time);
+                            if (closest) {
+                                markers.push({
+                                    time: closest.time,
+                                    position,
+                                    color,
+                                    shape: position === 'aboveBar' ? 'arrowDown' : 'arrowUp',
+                                    text,
+                                });
+                            }
+                        }
+                    };
+
+                    if (meta.tradingPeriods.pre) addMarker(meta.tradingPeriods.pre.start, 'Pre-Market Open', '#6366f1', 'aboveBar');
+                    if (meta.tradingPeriods.regular) {
+                        addMarker(meta.tradingPeriods.regular.start, 'Market Open', '#10b981', 'belowBar');
+                        addMarker(meta.tradingPeriods.regular.end, 'Market Close', '#ef4444', 'aboveBar');
+                    }
+                    if (meta.tradingPeriods.post) addMarker(meta.tradingPeriods.post.end, 'Post-Market Close', '#6366f1', 'aboveBar');
+                }
+
                 if (seriesRef.current) {
                     if (chartType === 'area') {
                         seriesRef.current.setData(data.map(d => ({
@@ -176,6 +222,8 @@ export function ChartWidget({
                             close: d.close
                         })));
                     }
+                    // Apply Markers
+                    seriesRef.current.setMarkers(markers);
                 }
 
                 const maPeriods = [9, 21, 50, 100];

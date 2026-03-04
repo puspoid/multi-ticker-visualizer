@@ -5,6 +5,11 @@ export interface TickerDataResult {
     meta: {
         regularMarketPrice: number;
         previousClose: number | null;
+        tradingPeriods?: {
+            pre: { start: any, end: any } | null;
+            regular: { start: any, end: any } | null;
+            post: { start: any, end: any } | null;
+        };
     };
 }
 
@@ -108,11 +113,42 @@ export async function fetchTickerData(ticker: string, range: string = '1Y', exte
             return String(prevTime) !== String(currTime);
         });
 
+        let periods = undefined;
+
+        if (extendedHours && result.meta?.currentTradingPeriod) {
+            const formatTime = (ts: number) => {
+                const d = new Date(ts * 1000);
+                if (range === '1D' || range === '5D' || range === '1M') {
+                    return (ts - (d.getTimezoneOffset() * 60)) as any;
+                }
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            periods = {
+                pre: result.meta.currentTradingPeriod.pre ? {
+                    start: formatTime(result.meta.currentTradingPeriod.pre.start),
+                    end: formatTime(result.meta.currentTradingPeriod.pre.end)
+                } : null,
+                regular: result.meta.currentTradingPeriod.regular ? {
+                    start: formatTime(result.meta.currentTradingPeriod.regular.start),
+                    end: formatTime(result.meta.currentTradingPeriod.regular.end)
+                } : null,
+                post: result.meta.currentTradingPeriod.post ? {
+                    start: formatTime(result.meta.currentTradingPeriod.post.start),
+                    end: formatTime(result.meta.currentTradingPeriod.post.end)
+                } : null,
+            };
+        }
+
         return {
             data: uniqueData,
             meta: {
                 regularMarketPrice: result.meta?.regularMarketPrice || uniqueData[uniqueData.length - 1]?.close,
-                previousClose: result.meta?.previousClose || null
+                previousClose: result.meta?.previousClose || null,
+                tradingPeriods: periods
             }
         };
     } catch (error) {

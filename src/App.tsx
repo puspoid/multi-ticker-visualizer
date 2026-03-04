@@ -16,9 +16,9 @@ function App() {
 
   // New Global States
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
-  const [showMAs, setShowMAs] = useState<boolean>(true);
+  const [showMAs, setShowMAs] = useState<boolean>(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('1Y');
-  const [chartType, setChartType] = useState<ChartType>('candle');
+  const [chartType, setChartType] = useState<ChartType>('area');
   const [extendedHours, setExtendedHours] = useState<boolean>(false);
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null);
 

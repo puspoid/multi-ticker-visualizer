@@ -1,6 +1,14 @@
 import type { ChartData } from './indicators';
 
-export async function fetchTickerData(ticker: string, range: string = '1Y'): Promise<ChartData[]> {
+export interface TickerDataResult {
+    data: ChartData[];
+    meta: {
+        regularMarketPrice: number;
+        previousClose: number | null;
+    };
+}
+
+export async function fetchTickerData(ticker: string, range: string = '1Y', extendedHours: boolean = false): Promise<TickerDataResult> {
     try {
         // Map ranges to optimal intervals
         let interval = '1d';
@@ -14,7 +22,10 @@ export async function fetchTickerData(ticker: string, range: string = '1Y'): Pro
         else if (range === '1Y') { interval = '1d'; queryRange = '1y'; }
 
         // We use the local proxy configured in vite.config.ts to avoid CORS issues
-        const url = `/api/finance/v8/finance/chart/${ticker}?interval=${interval}&range=${queryRange}`;
+        let url = `/api/finance/v8/finance/chart/${ticker}?interval=${interval}&range=${queryRange}`;
+        if (extendedHours) {
+            url += `&includePrePost=true`;
+        }
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -50,11 +61,17 @@ export async function fetchTickerData(ticker: string, range: string = '1Y'): Pro
 
             const date = new Date(timestamps[i] * 1000);
 
-            // For intraday (1D, 5D), lightweight charts expects UNIX timestamps for time
-            // For daily (1M, 6M, YTD, 1Y), it expects YYYY-MM-DD
-            const timeVal = (range === '1D' || range === '5D' || range === '1M')
-                ? (timestamps[i] as any)
-                : date.toISOString().split('T')[0];
+            // For intraday (1D, 5D, 1M), lightweight charts expects UNIX timestamps for time
+            // We subtract the timezone offset to force Lightweight Charts to display it as local time
+            let timeVal;
+            if (range === '1D' || range === '5D' || range === '1M') {
+                timeVal = (timestamps[i] - (date.getTimezoneOffset() * 60)) as any;
+            } else {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                timeVal = `${year}-${month}-${day}`;
+            }
 
             chartData.push({
                 time: timeVal,
@@ -91,7 +108,13 @@ export async function fetchTickerData(ticker: string, range: string = '1Y'): Pro
             return String(prevTime) !== String(currTime);
         });
 
-        return uniqueData;
+        return {
+            data: uniqueData,
+            meta: {
+                regularMarketPrice: result.meta?.regularMarketPrice || uniqueData[uniqueData.length - 1]?.close,
+                previousClose: result.meta?.previousClose || null
+            }
+        };
     } catch (error) {
         console.error(`Failed to fetch data for ${ticker}:`, error);
         throw error;

@@ -6,11 +6,12 @@ interface ChartGridProps {
     timeRange: TimeRange;
     showMAs: boolean;
     chartType: ChartType;
+    extendedHours: boolean;
     expandedTicker: string | null;
     onExpand: (ticker: string | null) => void;
 }
 
-export function ChartGrid({ tickers, timeRange, showMAs, chartType, expandedTicker, onExpand }: ChartGridProps) {
+export function ChartGrid({ tickers, timeRange, showMAs, chartType, extendedHours, expandedTicker, onExpand }: ChartGridProps) {
     if (tickers.length === 0) {
         return (
             <div className="w-full h-full min-h-[400px] flex items-center justify-center border border-dashed border-zinc-300 dark:border-zinc-800 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30">
@@ -31,6 +32,7 @@ export function ChartGrid({ tickers, timeRange, showMAs, chartType, expandedTick
                     timeRange={timeRange}
                     showMAs={showMAs}
                     chartType={chartType}
+                    extendedHours={extendedHours}
                     isExpanded={true}
                     onExpandToggle={() => onExpand(null)}
                 />
@@ -52,6 +54,7 @@ export function ChartGrid({ tickers, timeRange, showMAs, chartType, expandedTick
                         timeRange={timeRange}
                         showMAs={showMAs}
                         chartType={chartType}
+                        extendedHours={extendedHours}
                         isExpanded={false}
                         onExpandToggle={() => onExpand(ticker)}
                     />

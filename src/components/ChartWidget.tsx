@@ -11,6 +11,7 @@ interface ChartWidgetProps {
     timeRange?: TimeRange;
     chartType?: ChartType;
     showMAs?: boolean;
+    extendedHours?: boolean;
     isExpanded?: boolean;
     onExpandToggle?: () => void;
 }
@@ -20,6 +21,7 @@ export function ChartWidget({
     timeRange = '1Y',
     chartType = 'candle',
     showMAs = true,
+    extendedHours = false,
     isExpanded = false,
     onExpandToggle
 }: ChartWidgetProps) {
@@ -44,7 +46,7 @@ export function ChartWidget({
                 if (!chartRef.current) setLoading(true);
                 setError(null);
 
-                const data = await fetchTickerData(ticker, timeRange);
+                const { data, meta } = await fetchTickerData(ticker, timeRange, extendedHours);
 
                 if (!isMounted) return;
 
@@ -52,13 +54,20 @@ export function ChartWidget({
                     throw new Error('No data available');
                 }
 
-                const latest = data[data.length - 1];
-                const prev = data.length > 1 ? data[data.length - 2] : latest;
-                const change = latest.close - prev.close;
-                const pctChange = (change / prev.close) * 100;
+                const latestPrice = meta.regularMarketPrice || data[data.length - 1].close;
+
+                // For intraday ranges, meta.previousClose contains the real previous daily close.
+                // For daily ranges (1Y, 6M etc), meta.previousClose is null, so we use yesterday's close from the data array.
+                let prevClose = meta.previousClose;
+                if (!prevClose) {
+                    prevClose = data.length > 1 ? data[data.length - 2].close : latestPrice;
+                }
+
+                const change = latestPrice - prevClose;
+                const pctChange = prevClose ? (change / prevClose) * 100 : 0;
 
                 setCurrentPrice({
-                    price: latest.close,
+                    price: latestPrice,
                     change,
                     pctChange
                 });
@@ -107,9 +116,9 @@ export function ChartWidget({
                     let mainSeries;
                     if (chartType === 'area') {
                         mainSeries = chart.addAreaSeries({
-                            lineColor: '#6366f1', // indigo-500
-                            topColor: 'rgba(99, 102, 241, 0.4)',
-                            bottomColor: 'rgba(99, 102, 241, 0)',
+                            lineColor: '#10b981', // emerald-500
+                            topColor: 'rgba(16, 185, 129, 0.4)',
+                            bottomColor: 'rgba(16, 185, 129, 0)',
                         });
                     } else {
                         mainSeries = chart.addCandlestickSeries({
@@ -207,7 +216,7 @@ export function ChartWidget({
                 chartRef.current = null;
             }
         };
-    }, [ticker, timeRange, chartType]); // Re-fetch when ticker, range, or chartType changes
+    }, [ticker, timeRange, chartType, extendedHours]); // Re-fetch when ticker, range, type, or extendedHours changes
 
     // Update MAs visibility when showMAs prop changes
     useEffect(() => {

@@ -1,73 +1,54 @@
-# React + TypeScript + Vite
+# Multi-Ticker Visualizer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A lightweight, modern React application for simultaneously tracking and visualizing multiple stock tickers. Built with React, Vite, Tailwind CSS, and TradingView's Lightweight Charts.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+* **Multi-Chart Grid**: Monitor multiple assets at once in a responsive grid layout.
+* **Real-time Data Fetching**: Utilizes the Yahoo Finance API for up-to-date quote and historical data.
+* **Extended Hours**: Toggle pre-market and post-market trading sessions with visual boundary markers.
+* **Smart Portfolio Management**: Create, save, edit, and switch between customized lists of stock tickers (saved locally).
+* **Elegant Visuals**: 
+  * Beautiful **Emerald Green** Area (Mountain) charts by default.
+  * Native Candlestick chart support.
+  * Clean, compact unified header layout.
+* **Technical Indicators**: One-click toggling for Simple Moving Averages (SMA 9, 21, 50, 100).
+* **Dynamic Time Scales**: Switch seamlessly between 1D (intraday), 5D, 1M, 6M, YTD, and 1Y views.
+* **Dark/Light Mode**: Full aesthetic support for both dark and light themes, remembering user preferences.
+* **Fullscreen Mode**: Click any ticker symbol to instantly expand its chart to fill the screen for detailed analysis.
 
-## React Compiler
+## 🛠️ Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend Framework**: React 18, Vite
+- **Styling**: Tailwind CSS
+- **Charting Engine**: Lightweight Charts (v4)
+- **Icons**: Lucide React
+- **Language**: TypeScript
 
-## Expanding the ESLint configuration
+## 📦 Running Locally
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/puspoid/multi-ticker-visualizer.git
+   cd multi-ticker-visualizer
+   ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+3. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+   *Note: A local proxy is configured in `vite.config.ts` to route Yahoo Finance API requests and bypass CORS restrictions during development.*
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+4. **Build for production:**
+   ```bash
+   npm run build
+   ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📝 License
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+MIT License.

@@ -26,7 +26,8 @@ export async function fetchTickerData(ticker: string, range: string = '1Y', exte
         else if (range === 'YTD') { interval = '1d'; queryRange = 'ytd'; }
         else if (range === '1Y') { interval = '1d'; queryRange = '1y'; }
 
-        // We use the local proxy configured in vite.config.ts to avoid CORS issues
+        // In development, this is caught by vite.config.ts proxy
+        // In production (Cloudflare Pages), this is caught by functions/api/finance/[[path]].js
         let url = `/api/finance/v8/finance/chart/${ticker}?interval=${interval}&range=${queryRange}`;
         if (extendedHours) {
             url += `&includePrePost=true`;
